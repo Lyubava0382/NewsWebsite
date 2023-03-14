@@ -59,6 +59,13 @@ public class Person {
         this.lastname = lastname;
     }
 
+    public Person(String name, String lastname, String email, String password) {
+        this.name = name;
+        this.lastname = lastname;
+        this.email = email;
+        this.password = password;
+    }
+
     public int getId() {
         return id;
     }

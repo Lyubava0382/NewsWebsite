@@ -1,6 +1,7 @@
 package ru.project.NewsWebsite.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -10,7 +11,6 @@ import ru.project.NewsWebsite.repositories.PeopleRepository;
 import ru.project.NewsWebsite.security.PersonDetails;
 
 import java.util.Optional;
-
 @Service
 public class PersonDetailsService implements UserDetailsService {
 

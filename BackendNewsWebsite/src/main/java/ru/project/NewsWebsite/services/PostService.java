@@ -1,5 +1,6 @@
 package ru.project.NewsWebsite.services;
 
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.security.core.Authentication;
@@ -19,9 +20,6 @@ import static java.time.temporal.ChronoUnit.HOURS;
 import java.time.LocalDateTime;
 import java.util.*;
 
-/**
- * @author Neil Alishev
- */
 @Service
 @Transactional(readOnly = true)
 public class PostService {
@@ -29,12 +27,14 @@ public class PostService {
     private final PostRepository postRepository;
     private final PeopleService peopleService;
 
+    private final ModelMapper modelMapper;
     private final TagService tagService;
 
     @Autowired
-    public PostService(PostRepository postRepository, PeopleService peopleService, TagService tagService){
+    public PostService(PostRepository postRepository, PeopleService peopleService, ModelMapper modelMapper, TagService tagService){
         this.postRepository = postRepository;
         this.peopleService = peopleService;
+        this.modelMapper = modelMapper;
         this.tagService = tagService;
     }
 
@@ -136,7 +136,8 @@ public class PostService {
 
     // Изменить существующую новость
     @Transactional
-    public void changePost(Post newPost){
+    public void changePost(PostDTO newPostDTO, int id){
+        Post newPost = convertToPost(newPostDTO, id);
         if (postRepository.findById(newPost.getId()).isPresent()){
             Post post = postRepository.findById(newPost.getId()).get();
             if (!Objects.equals(newPost.getTitle(), post.getTitle())){
@@ -157,7 +158,8 @@ public class PostService {
 
     // Сохранить новость в БД
     @Transactional
-    public void save(Post post, PostDTO postDTO){
+    public void save(PostDTO postDTO, int id){
+        Post post = convertToPost(postDTO, id);
         List<Tag> tags = new ArrayList<>();
         if (postDTO.getHashtags() != null) {
             for (String hashtag : postDTO.getHashtags()) {
@@ -170,5 +172,45 @@ public class PostService {
         for (Tag tag : tags){
             tagService.savePost(tag, post);
         }
+    }
+
+
+    //    Преобразование Post -> PostDTO, где статья обрезается по формату
+    public PostDTO convertToPostDTO(Post post) {
+        PostDTO newpost = convertToPostDTOWithText(post);
+        String text = newpost.getText();
+        if (text.length() > 100) newpost.setText(text.substring(0, 400));
+        return newpost;
+    }
+
+    //    Преобразование Post -> PostDTO, с сохранением полного текста статьи
+    public PostDTO convertToPostDTOWithText(Post post) {
+        PostDTO newpost = modelMapper.map(post, PostDTO.class);
+        newpost.setLikes(this.howMuchLikes(post));
+        List<String> hashtags = new ArrayList<>();
+        if (!post.getTags().isEmpty()) {
+            for (Tag tag : post.getTags()) {
+                hashtags.add(new StringBuilder(tag.getText()).insert(0, "#").toString());
+            }
+        }
+        newpost.setHashtags(hashtags);
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            PersonDetails personDetails = (PersonDetails) authentication.getPrincipal();
+            newpost.setPersonLike(post.getLiking().contains(peopleService.findEmail(personDetails.getUsername())));
+        } catch (ClassCastException e) {
+        }
+        return newpost;
+    }
+
+    //    Преобразование PostDTO -> Post
+    @Transactional
+    public Post convertToPost(PostDTO postDTO, int id) {
+        Post post =  modelMapper.map(postDTO, Post.class);
+        if (id != 0) post.setId(id);
+        else {
+            post.setCreatedAt(LocalDateTime.now());
+        }
+        return post;
     }
 }
