@@ -11,6 +11,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 import ru.project.NewsWebsite.dto.PostDTO;
+import ru.project.NewsWebsite.models.Person;
 import ru.project.NewsWebsite.models.Post;
 import ru.project.NewsWebsite.models.Tag;
 import ru.project.NewsWebsite.security.PersonDetails;
@@ -72,7 +73,10 @@ public class NewsController {
     //  Поставить новости лайк (доступно авторизованным пользователям)
     @GetMapping("/{post_id}/like")
     public ResponseEntity<HttpStatus> likePost(@PathVariable("post_id") int post_id) {
-        postService.like(postService.findOne(post_id));
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        PersonDetails personDetails = (PersonDetails) authentication.getPrincipal();
+        Person person = peopleService.findEmail(personDetails.getUsername());
+        postService.like(postService.findOne(post_id), person);
         return ResponseEntity.ok(HttpStatus.OK);
     }
 

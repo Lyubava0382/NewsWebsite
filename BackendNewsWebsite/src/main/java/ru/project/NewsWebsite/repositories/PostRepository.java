@@ -12,10 +12,7 @@ import java.util.Optional;
 
 @Repository
 public interface PostRepository extends JpaRepository<Post, Integer> {
-    List<Post> findAllByOrderByCreatedAtDesc(Pageable pageable);
     List<Post> findAllByOrderByCreatedAtDesc();
-
     void deleteById(int id);
-
 
 }

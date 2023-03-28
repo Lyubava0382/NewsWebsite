@@ -3,6 +3,7 @@ package ru.project.NewsWebsite.models;
 import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Size;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -40,9 +41,15 @@ public class Tag {
 
 
     public Tag() {
+        this.setNoting(new ArrayList<>());
+        this.setMarked(new ArrayList<>());
+        this.setRefuses(new ArrayList<>());
     }
 
     public Tag(String text) {
+        this.setNoting(new ArrayList<>());
+        this.setMarked(new ArrayList<>());
+        this.setRefuses(new ArrayList<>());
         this.text = text;
     }
 
