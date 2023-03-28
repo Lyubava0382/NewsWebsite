@@ -29,6 +29,6 @@ public class PersonValidator implements Validator {
     public void validate(Object o, Errors errors) {
         Person person = (Person) o;
         if (peopleRepository.findByEmail(person.getEmail()).isEmpty()) return;
-        throw new PersonAlreadyExistsException();
+        throw new PersonAlreadyExistsException("Person with this email already exists");
     }
 }

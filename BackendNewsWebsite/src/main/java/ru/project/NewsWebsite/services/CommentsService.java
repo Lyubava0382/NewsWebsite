@@ -40,9 +40,12 @@ public class CommentsService {
     // Дополнить сущность комментария
     private void enrichComment(Comment comment, CommentDTO commentDTO, int post_id) {
         comment.setCreatedAt(LocalDateTime.now());
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        PersonDetails personDetails = (PersonDetails) authentication.getPrincipal();
-        comment.setCommentator(peopleService.findEmail(personDetails.getUsername()));
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            PersonDetails personDetails = (PersonDetails) authentication.getPrincipal();
+            comment.setCommentator(peopleService.findEmail(personDetails.getUsername()));
+        } catch (NullPointerException e) {
+        }
         if(postRepository.findById(post_id).isPresent()) {
             comment.setPost(postRepository.findById(post_id).get());
         }

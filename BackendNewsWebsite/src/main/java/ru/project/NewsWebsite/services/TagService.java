@@ -25,7 +25,7 @@ public class TagService {
         return foundTag.orElseThrow(TagNotFoundException::new);
     }
 
-    // Поиск в БД тэга по его тексту или его создание
+    // Поиск в БД тэга по тексту или его создание
     @Transactional
     public Tag findOrCreateOne(String text) {
         Optional<Tag> foundTag = tagRepository.findByText(text);
@@ -41,24 +41,20 @@ public class TagService {
     @Transactional
     public void savePerson(Tag tag, TagDTO tagDTO, Person person){
         if (tagDTO.getKindOf().equals("like")){
-            if (person.getTags() == null) {
-                person.setTags(new ArrayList<Tag>());
+             if (!person.getTags().contains(tag)){
+                 person.getTags().add(tag);
+             }
+            if (!tag.getNoting().contains(person)){
+                tag.getNoting().add(person);
             }
-                person.getTags().add(tag);
-            if (tag.getNoting() == null) {
-                tag.setNoting(new ArrayList<Person>());
-            }
-            tag.getNoting().add(person);
         }
         else if (tagDTO.getKindOf().equals("ban")){
-            if (person.getBanTags() == null) {
-                person.setBanTags(new ArrayList<Tag>());
+            if (!person.getBanTags().contains(tag)){
+                person.getBanTags().add(tag);
             }
-            person.getBanTags().add(tag);
-            if (tag.getRefuses() == null) {
-                tag.setRefuses(new ArrayList<Person>());
+            if (!tag.getRefuses().contains(person)){
+                tag.getRefuses().add(person);
             }
-            tag.getRefuses().add(person);
         }
         else throw new IllegalArgumentException();
     }
@@ -67,12 +63,12 @@ public class TagService {
     @Transactional
     public void deletePerson(Tag tag, TagDTO tagDTO, Person person){
         if (tagDTO.getKindOf().equals("like")){
-            if (tag.getNoting().contains(person)) tag.getNoting().remove(person);
-            if (person.getTags().contains(tag)) person.getTags().remove(tag);
+            tag.getNoting().remove(person);
+            person.getTags().remove(tag);
         }
         else if (tagDTO.getKindOf().equals("ban")){
-            if (tag.getRefuses().contains(person)) tag.getRefuses().remove(person);
-            if (person.getBanTags().contains(tag)) person.getBanTags().remove(tag);
+            tag.getRefuses().remove(person);
+            person.getBanTags().remove(tag);
         }
         else throw new IllegalArgumentException();
     }
@@ -80,14 +76,12 @@ public class TagService {
     // Сохранить в БД тему статьи
     @Transactional
     public void savePost(Tag tag, Post post){
-        if (post.getTags() == null) {
-            post.setTags(new ArrayList<Tag>());
+        if (!post.getTags().contains(tag)) {
+            post.getTags().add(tag);
         }
-        post.getTags().add(tag);
-        if (tag.getMarked() == null) {
-            tag.setMarked(new ArrayList<Post>());
+        if (!tag.getMarked().contains(post)){
+            tag.getMarked().add(post);
         }
-        tag.getMarked().add(post);
     }
 
     // Удалить из БД тему статьи

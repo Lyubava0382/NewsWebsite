@@ -2,7 +2,6 @@ package ru.project.NewsWebsite.services;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -15,7 +14,6 @@ import ru.project.NewsWebsite.repositories.PostRepository;
 import ru.project.NewsWebsite.security.PersonDetails;
 import ru.project.NewsWebsite.util.PostNotFoundException;
 
-import static java.time.temporal.ChronoUnit.HOURS;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -26,7 +24,6 @@ public class PostService {
 
     private final PostRepository postRepository;
     private final PeopleService peopleService;
-
     private final ModelMapper modelMapper;
     private final TagService tagService;
 
@@ -64,7 +61,7 @@ public class PostService {
         }
     }
 
-    // Бан новости (статья не показывается в ленте конкретного пользователя)
+    // Проверка новости - в бане или доступна
     private boolean toBan(Post post, Person person){
         for (Tag tag : person.getBanTags()){
             for (Tag tag1 : post.getTags()){
@@ -80,7 +77,7 @@ public class PostService {
     public List<Post> findAll(int person_id) {
         Person person = peopleService.findOne(person_id);
         List<Post> news = new ArrayList<Post>(postRepository.findAllByOrderByCreatedAtDesc());
-        news.removeIf(post -> HOURS.between(LocalDateTime.now(), post.getCreatedAt()) > 24
+        news.removeIf(post -> post.getCreatedAt().isBefore(LocalDateTime.now().minusDays(1))
         || toBan(post, person));
         sortNews(news, person);
         return news;
@@ -88,8 +85,8 @@ public class PostService {
 
     // Возвращает все новости за последние 24 часа для неавторизованного пользователя
     public List<Post> findAll() {
-        List<Post> news = new ArrayList<Post>(postRepository.findAllByOrderByCreatedAtDesc());
-        news.removeIf(post -> HOURS.between(LocalDateTime.now(), post.getCreatedAt()) > 24);
+        List<Post> news = new ArrayList<>(postRepository.findAllByOrderByCreatedAtDesc());
+        news.removeIf(post -> post.getCreatedAt().isBefore(LocalDateTime.now().minusDays(1)));
         return news;
     }
 
@@ -101,10 +98,7 @@ public class PostService {
 
     // Поставить лайк новости
     @Transactional
-    public void like(Post post) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        PersonDetails personDetails = (PersonDetails) authentication.getPrincipal();
-        Person person = peopleService.findEmail(personDetails.getUsername());
+    public void like(Post post, Person person) {
         List<Person> newLikePerson = post.getLiking();
         List<Post> newLikePost = person.getLiked();
         if (post.getLiking().contains(person)) {
@@ -126,13 +120,9 @@ public class PostService {
     // Удалить определённую статью по её ID
     @Transactional
     public void deletePostById(int id){
-
-        try {
-            postRepository.deleteById(id);
-        }
-        catch (EmptyResultDataAccessException e){
-            throw new PostNotFoundException();
-        }    }
+        if (postRepository.findById(id).isEmpty()) throw new PostNotFoundException();
+        postRepository.deleteById(id);
+    }
 
     // Изменить существующую новость
     @Transactional
@@ -179,28 +169,26 @@ public class PostService {
     public PostDTO convertToPostDTO(Post post) {
         PostDTO newpost = convertToPostDTOWithText(post);
         String text = newpost.getText();
-        if (text.length() > 100) newpost.setText(text.substring(0, 400));
+        if (text.length() > 300) newpost.setText(text.substring(0, 300));
         return newpost;
     }
 
     //    Преобразование Post -> PostDTO, с сохранением полного текста статьи
     public PostDTO convertToPostDTOWithText(Post post) {
-        PostDTO newpost = modelMapper.map(post, PostDTO.class);
-        newpost.setLikes(this.howMuchLikes(post));
+        PostDTO new_post = modelMapper.map(post, PostDTO.class);
+        new_post.setLikes(this.howMuchLikes(post));
         List<String> hashtags = new ArrayList<>();
-        if (!post.getTags().isEmpty()) {
-            for (Tag tag : post.getTags()) {
-                hashtags.add(new StringBuilder(tag.getText()).insert(0, "#").toString());
-            }
+        for (Tag tag : post.getTags()) {
+            hashtags.add(new StringBuilder(tag.getText()).insert(0, "#").toString());
         }
-        newpost.setHashtags(hashtags);
+        new_post.setHashtags(hashtags);
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             PersonDetails personDetails = (PersonDetails) authentication.getPrincipal();
-            newpost.setPersonLike(post.getLiking().contains(peopleService.findEmail(personDetails.getUsername())));
-        } catch (ClassCastException e) {
+            new_post.setPersonLike(post.getLiking().contains(peopleService.findEmail(personDetails.getUsername())));
+        } catch (NullPointerException e) {
         }
-        return newpost;
+        return new_post;
     }
 
     //    Преобразование PostDTO -> Post

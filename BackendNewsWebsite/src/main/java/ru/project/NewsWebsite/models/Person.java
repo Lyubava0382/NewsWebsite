@@ -4,6 +4,7 @@ import javax.persistence.*;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Size;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -51,15 +52,26 @@ public class Person {
 
 
     public Person() {
-
+        this.setTags(new ArrayList<>());
+        this.setLiked(new ArrayList<>());
+        this.setBanTags(new ArrayList<>());
+        this.setComments(new ArrayList<>());
     }
 
     public Person(String name, String lastname) {
+        this.setTags(new ArrayList<>());
+        this.setLiked(new ArrayList<>());
+        this.setBanTags(new ArrayList<>());
+        this.setComments(new ArrayList<>());
         this.name = name;
         this.lastname = lastname;
     }
 
     public Person(String name, String lastname, String email, String password) {
+        this.setTags(new ArrayList<>());
+        this.setLiked(new ArrayList<>());
+        this.setBanTags(new ArrayList<>());
+        this.setComments(new ArrayList<>());
         this.name = name;
         this.lastname = lastname;
         this.email = email;

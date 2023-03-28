@@ -4,6 +4,7 @@ import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Size;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -49,6 +50,9 @@ public class Post {
     }
 
     public Post() {
+        this.setTags(new ArrayList<>());
+        this.setLiking(new ArrayList<>());
+        this.setComments(new ArrayList<>());
     }
 
     public int getId() {
