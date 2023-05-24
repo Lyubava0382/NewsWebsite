@@ -41,17 +41,17 @@ public class SecurityConfig {
                 .authorizeRequests()
                 .antMatchers("/news/admin/*",
                         "/news/{post_id}/comments/admin").hasRole("ADMIN")
-                .antMatchers("/auth/registration", "/auth/login", "/news/{post_id}/more", "/news/*","/news",
+                .antMatchers("/auth/*", "/news/{post_id}/more", "/news/*","/news",
                         "/news/{post_id}/comments").permitAll()
                 .anyRequest().hasAnyRole("USER", "ADMIN")
                 .and()
                 .formLogin().loginPage("/auth/login")
-                .loginProcessingUrl("/process_login")
+                .loginProcessingUrl("/auth/process_login")
                 .defaultSuccessUrl("/news", true)
                 .failureUrl("/news")
                 .and()
                 .logout()
-                .logoutUrl("/logout")
+                .logoutUrl("/auth/logout")
                 .logoutSuccessUrl("/auth/login")
                 .and()
                 .sessionManagement()

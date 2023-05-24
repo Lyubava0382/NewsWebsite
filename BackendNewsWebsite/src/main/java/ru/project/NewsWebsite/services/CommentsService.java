@@ -21,7 +21,6 @@ import java.util.Optional;
 public class CommentsService {
     private final CommentsRepository commentsRepository;
     private final PostRepository postRepository;
-
     private final PeopleService peopleService;
 
     public CommentsService(CommentsRepository commentsRepository, PostRepository postRepository, PeopleService peopleService) {
@@ -40,12 +39,9 @@ public class CommentsService {
     // Дополнить сущность комментария
     private void enrichComment(Comment comment, CommentDTO commentDTO, int post_id) {
         comment.setCreatedAt(LocalDateTime.now());
-        try {
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            PersonDetails personDetails = (PersonDetails) authentication.getPrincipal();
-            comment.setCommentator(peopleService.findEmail(personDetails.getUsername()));
-        } catch (NullPointerException e) {
-        }
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        PersonDetails personDetails = (PersonDetails) authentication.getPrincipal();
+        comment.setCommentator(peopleService.findEmail(personDetails.getUsername()));
         if(postRepository.findById(post_id).isPresent()) {
             comment.setPost(postRepository.findById(post_id).get());
         }
@@ -63,7 +59,7 @@ public class CommentsService {
     @Transactional
     public void deleteCommentById(int id){
         Optional<Comment> comment = commentsRepository.findById(id);
-        if (comment.isEmpty()) throw new CommentNotFoundException();
+        if (!comment.isPresent()) throw new CommentNotFoundException();
         commentsRepository.deleteById(id);
     }
 }

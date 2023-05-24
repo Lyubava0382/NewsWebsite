@@ -1,7 +1,6 @@
 package ru.project.NewsWebsite.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -25,7 +24,7 @@ public class PersonDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String s) throws UsernameNotFoundException {
         Optional<Person> person = peopleRepository.findByEmail(s);
 
-        if (person.isEmpty())
+        if (!person.isPresent())
             throw new UsernameNotFoundException("User not found");
 
         return new PersonDetails(person.get());

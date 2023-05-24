@@ -23,8 +23,8 @@ public class RegistrationService {
     @Transactional
     public void register(Person person) {
         person.setPassword(passwordEncoder.encode(person.getPassword()));
-        person.setRole("ROLE_USER");
-        peopleRepository.save(person);
+        if (person.getRole() == null) person.setRole("ROLE_USER");
+        if (!peopleRepository.findByEmail(person.getEmail()).isPresent()) peopleRepository.save(person);
     }
 
 }

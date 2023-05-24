@@ -11,14 +11,14 @@ import java.util.List;
 @Table(name = "Post")
 public class Post {
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable( name = "Likes",
     joinColumns = @JoinColumn(name = "post_id"),
     inverseJoinColumns = @JoinColumn(name = "person_id"))
     private List<Person> liking;  // Список лайкнувших новость людей
 
     @ManyToMany(mappedBy = "marked")
-    private List<Tag> tags; // Темы (тэши) статьи
+    private List<Tag> tags; // Темы (тэги) статьи
 
     @OneToMany(mappedBy = "commentator")
     private List<Comment> comments; // Комментарии под новостью
@@ -44,9 +44,23 @@ public class Post {
     @Column(name = "pictures")
     private String picture; // Фото/картинка, описывающая новость
 
-    public Post(String title, String text) {
+    public Post(String title, String text, String picture) {
         this.title = title;
         this.text = text;
+        this.picture = picture;
+        this.setTags(new ArrayList<>());
+        this.setLiking(new ArrayList<>());
+        this.setComments(new ArrayList<>());
+    }
+
+    public Post(String title, String text, String picture, LocalDateTime time) {
+        this.title = title;
+        this.text = text;
+        this.picture = picture;
+        this.createdAt = time;
+        this.setTags(new ArrayList<>());
+        this.setLiking(new ArrayList<>());
+        this.setComments(new ArrayList<>());
     }
 
     public Post() {

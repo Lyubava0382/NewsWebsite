@@ -26,6 +26,16 @@ public class PostDTO {
 
     private int id;  // Id статьи
 
+    public PostDTO() {
+    }
+
+    public PostDTO(String title, String text, String picture, LocalDateTime createdAt) {
+        this.title = title;
+        this.text = text;
+        this.createdAt = createdAt;
+        this.picture = picture;
+    }
+
     public String getTitle() {
         return title;
     }

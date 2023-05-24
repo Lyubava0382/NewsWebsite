@@ -1,17 +1,12 @@
 package ru.project.NewsWebsite.services;
 
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.project.NewsWebsite.dto.PostDTO;
 import ru.project.NewsWebsite.models.Person;
 import ru.project.NewsWebsite.models.Post;
 import ru.project.NewsWebsite.models.Tag;
 import ru.project.NewsWebsite.repositories.PostRepository;
-import ru.project.NewsWebsite.security.PersonDetails;
 import ru.project.NewsWebsite.util.PostNotFoundException;
 
 
@@ -24,15 +19,11 @@ public class PostService {
 
     private final PostRepository postRepository;
     private final PeopleService peopleService;
-    private final ModelMapper modelMapper;
-    private final TagService tagService;
 
     @Autowired
-    public PostService(PostRepository postRepository, PeopleService peopleService, ModelMapper modelMapper, TagService tagService){
+    public PostService(PostRepository postRepository, PeopleService peopleService){
         this.postRepository = postRepository;
         this.peopleService = peopleService;
-        this.modelMapper = modelMapper;
-        this.tagService = tagService;
     }
 
     // Сортировка новостей с учётом предпочтений пользователя
@@ -120,14 +111,13 @@ public class PostService {
     // Удалить определённую статью по её ID
     @Transactional
     public void deletePostById(int id){
-        if (postRepository.findById(id).isEmpty()) throw new PostNotFoundException();
+        if (!postRepository.findById(id).isPresent()) throw new PostNotFoundException();
         postRepository.deleteById(id);
     }
 
     // Изменить существующую новость
     @Transactional
-    public void changePost(PostDTO newPostDTO, int id){
-        Post newPost = convertToPost(newPostDTO, id);
+    public void changePost(Post newPost){
         if (postRepository.findById(newPost.getId()).isPresent()){
             Post post = postRepository.findById(newPost.getId()).get();
             if (!Objects.equals(newPost.getTitle(), post.getTitle())){
@@ -148,57 +138,16 @@ public class PostService {
 
     // Сохранить новость в БД
     @Transactional
-    public void save(PostDTO postDTO, int id){
-        Post post = convertToPost(postDTO, id);
-        List<Tag> tags = new ArrayList<>();
-        if (postDTO.getHashtags() != null) {
-            for (String hashtag : postDTO.getHashtags()) {
-                String newTag = new StringBuilder(hashtag).delete(0, 1).toString();
-                tags.add(tagService.findOrCreateOne(newTag));
-
-            }
+    public void save(Post post){
+        if (postRepository.findByTitle(post.getTitle()).isPresent()) {
+            return;
         }
-        postRepository.save(post);
-        for (Tag tag : tags){
-            tagService.savePost(tag, post);
-        }
-    }
-
-
-    //    Преобразование Post -> PostDTO, где статья обрезается по формату
-    public PostDTO convertToPostDTO(Post post) {
-        PostDTO newpost = convertToPostDTOWithText(post);
-        String text = newpost.getText();
-        if (text.length() > 300) newpost.setText(text.substring(0, 300));
-        return newpost;
-    }
-
-    //    Преобразование Post -> PostDTO, с сохранением полного текста статьи
-    public PostDTO convertToPostDTOWithText(Post post) {
-        PostDTO new_post = modelMapper.map(post, PostDTO.class);
-        new_post.setLikes(this.howMuchLikes(post));
-        List<String> hashtags = new ArrayList<>();
-        for (Tag tag : post.getTags()) {
-            hashtags.add(new StringBuilder(tag.getText()).insert(0, "#").toString());
-        }
-        new_post.setHashtags(hashtags);
-        try {
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            PersonDetails personDetails = (PersonDetails) authentication.getPrincipal();
-            new_post.setPersonLike(post.getLiking().contains(peopleService.findEmail(personDetails.getUsername())));
-        } catch (NullPointerException e) {
-        }
-        return new_post;
-    }
-
-    //    Преобразование PostDTO -> Post
-    @Transactional
-    public Post convertToPost(PostDTO postDTO, int id) {
-        Post post =  modelMapper.map(postDTO, Post.class);
-        if (id != 0) post.setId(id);
-        else {
+        if (post.getCreatedAt() == null)
             post.setCreatedAt(LocalDateTime.now());
-        }
-        return post;
+        postRepository.save(post);
+
     }
+
+
+
 }

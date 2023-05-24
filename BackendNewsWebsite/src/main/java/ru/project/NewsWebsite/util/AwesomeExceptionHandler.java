@@ -59,6 +59,11 @@ public class AwesomeExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(new AwesomeException("Person with this email already exists"), HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(OutsideAccountException.class)
+    protected ResponseEntity<AwesomeException> handleOutsideAccountException() {
+        return new ResponseEntity<>(new AwesomeException("You are not logged in to your account"), HttpStatus.BAD_REQUEST);
+    }
+
     private static class AwesomeException {
         private String message;
 

@@ -23,7 +23,7 @@ public class Tag {
             inverseJoinColumns = @JoinColumn(name = "person_id"))
     private List<Person> refuses; // Список пользователей, у которых этот тэг заблокирован
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable( name = "Themes",
             joinColumns = @JoinColumn(name = "tag_id"),
             inverseJoinColumns = @JoinColumn(name = "post_id"))
