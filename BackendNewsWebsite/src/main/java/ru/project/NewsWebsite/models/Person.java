@@ -14,7 +14,7 @@ public class Person {
     @ManyToMany(mappedBy = "liking")
     private List<Post> liked; // Лайки, оставленные пользователем
 
-    @OneToMany(mappedBy = "commentator")
+    @OneToMany(mappedBy = "commentator", cascade=CascadeType.MERGE)
     private List<Comment> comments; // Комментарии, оставленные пользователем
 
     @ManyToMany(mappedBy = "noting")

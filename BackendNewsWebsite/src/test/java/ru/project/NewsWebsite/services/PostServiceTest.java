@@ -125,44 +125,17 @@ class PostServiceTest {
 
     @Test
     void save() {
-        PostDTO postDTO = new PostDTO();
-        int post_id = 1;
-        List<String> hashtags = new ArrayList<>();
-        hashtags.add("#hashtags");
-        postDTO.setHashtags(hashtags);
-        postService.save(postDTO, post_id);
+        Post post = new Post();
+        postService.save(post);
+        assertTrue(post.getCreatedAt() != null);
         Mockito.verify(postRepository, Mockito.times(1)).save(any(Post.class));
-        Mockito.verify(tagService, Mockito.times(1)).findOrCreateOne("hashtags");
     }
 
     @Test
     void saveNew() {
-        PostDTO postDTO = new PostDTO();
-        postService.save(postDTO, 0);
+        Post post = new Post();
+        postService.save(post);
         Mockito.verify(postRepository, Mockito.times(1)).save(any(Post.class));
     }
 
-    @Test
-    void convertToPostDTOWithText() {
-        Post post = new Post();
-        List<Tag> tags = new ArrayList<>();
-        tags.add(new Tag("tag"));
-        post.setTags(tags);
-        PostDTO postDTO = postService.convertToPostDTOWithText(post);
-        Assert.assertNotNull(postDTO);
-        List<String> hashtags = new ArrayList<>();
-        hashtags.add("#tag");
-        Assert.assertEquals(hashtags,postDTO.getHashtags());
-
-    }
-
-    @Test
-    void convertToPost() {
-        int post_id = 1;
-        PostDTO postDTO = new PostDTO();
-        Post post = postService.convertToPost(postDTO, post_id);
-        Assert.assertEquals(post_id, post.getId());
-        Post new_post = postService.convertToPost(postDTO, 0);
-        Assert.assertNotNull(new_post.getCreatedAt());
-    }
 }

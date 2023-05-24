@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "Comments")
 public class Comment {
-    @ManyToOne
+    @ManyToOne(cascade=CascadeType.MERGE)
     @JoinColumn( name = "person_id", referencedColumnName = "id")
     private Person commentator; // Автор комментария
 

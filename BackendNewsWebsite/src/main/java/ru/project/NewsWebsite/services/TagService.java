@@ -7,7 +7,6 @@ import ru.project.NewsWebsite.models.Post;
 import ru.project.NewsWebsite.models.Tag;
 import ru.project.NewsWebsite.repositories.TagRepository;
 import ru.project.NewsWebsite.util.TagNotFoundException;
-import java.util.ArrayList;
 import java.util.Optional;
 
 @Service
@@ -29,7 +28,7 @@ public class TagService {
     @Transactional
     public Tag findOrCreateOne(String text) {
         Optional<Tag> foundTag = tagRepository.findByText(text);
-        if (foundTag.isEmpty()) {
+        if (!foundTag.isPresent()) {
             Tag tag = new Tag(text);
             tagRepository.save(tag);
             return tag;
